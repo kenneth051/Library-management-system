@@ -1,0 +1,44 @@
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor settings
+.vscode/
+*.code-workspace
+
+/vendor/
+composer.lock
+composer.phar
+.env
+.env.*
+config/local.php
+config/*.local.php
+cache/
+tmp/
+logs/
+*.log
+*.pid
+*.sqlite
+*.sqlite3
+
+# Build / tool artifacts
+node_modules/
+package-lock.json
+npm-debug.log*
+build/
+dist/
+coverage/
+.phpunit.result.cache
+
+# Temporary / backup files
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*~
