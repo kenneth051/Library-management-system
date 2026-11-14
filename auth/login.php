@@ -48,6 +48,7 @@
                 text-decoration: none;
             }
         }
+        .bi-book { font-size: 6rem; }
     </style>
 </head>
 <body>
