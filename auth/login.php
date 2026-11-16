@@ -77,7 +77,7 @@
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
         <p class="new-librarian">
-            <span class="text-secondary">New librarian? </span><a href="">Sign up</a>
+            <span class="text-secondary">New librarian? </span><a href="sign_up.php">Sign up</a>
         </p>
       </div>
     </div>
