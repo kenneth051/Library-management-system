@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $new_user->bind_param('ssss', $fullname, $email, $passwordHash, $staffCode);
 
                     if ($new_user->execute()) {
-                        $success = 'Account created successfully.';
-                        header("Location: login.php");
+                        $success = 'true';
+                        header('Location: login.php?success=' . urlencode($success));
                         exit();
                     } else {
                         $error = 'Unable to create account. Please try again.';
@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="input-group mb-3">
               <span class="input-group-text bg-white"><i class="bi bi-shield"></i></span>
-              <input type="password" name="staff_code" class="form-control" placeholder="Staff Code" required>
+              <input type="password" name="staff_code" class="form-control" placeholder="Staff Code">
             </div>
             <p class="text-secondary mb-4">Ask the head librarian for the staff code. New accounts are created as librarians.</p>
             <button type="submit" class="btn btn-primary">Sign Up</button>
