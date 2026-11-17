@@ -1,3 +1,9 @@
+<?php
+$success_message = '';
+if ($_GET['success'] ?? '' === 'true') {
+    $success_message = "You have successfully created an account. Please login to continue.";
+} 
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,6 +55,12 @@
             }
         }
         .bi-book { font-size: 6rem; }
+        .auth-message {
+          width:70%;
+          display:flex;
+          justify-content:center;
+          align-self:center;
+        }
     </style>
 </head>
 <body>
@@ -65,6 +77,11 @@
           <h2>Welcome Back!</h2>
           <p class="text-secondary mb-4">Please login to continue</p>
         </div>
+
+        <?php if (!empty($success_message)): ?>
+          <div class="alert alert-success auth-message"><?php echo htmlspecialchars($success_message); ?></div>
+        <?php endif; ?>
+
         <form method="post" action="" class="login-form">
             <div class="input-group mb-3">
             <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>

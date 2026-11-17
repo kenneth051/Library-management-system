@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $new_user->bind_param('ssss', $fullname, $email, $passwordHash, $staffCode);
 
                     if ($new_user->execute()) {
-                        $success = 'Account created successfully.';
-                        header("Location: login.php");
+                        $success = 'true';
+                        header('Location: login.php?success=' . urlencode($success));
                         exit();
                     } else {
                         $error = 'Unable to create account. Please try again.';
