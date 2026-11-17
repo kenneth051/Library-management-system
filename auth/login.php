@@ -1,8 +1,49 @@
 <?php
+session_start();
+require_once __DIR__ . '/../config/database.php';
+
+$error = '';
 $success_message = '';
-if ($_GET['success'] ?? '' === 'true') {
-    $success_message = "You have successfully created an account. Please login to continue.";
-} 
+
+if (($_GET['success'] ?? '') === 'true') {
+    $success_message = 'You have successfully created an account. Please login to continue.';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if ($email === '' || $password === '') {
+        $error = 'Please enter both email and password.';
+    } else {
+        $stmt = $conn->prepare('SELECT id, full_name, email, password_hash, is_active FROM users WHERE email = ? LIMIT 1');
+
+        if (!$stmt) {
+            $error = 'Database error. Please try again later.';
+        } else {
+            $stmt->bind_param('s', $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $user = $result->fetch_assoc();
+            $stmt->close();
+
+            if (!$user) {
+                $error = 'Invalid email or password.';
+            } elseif (!password_verify($password, $user['password_hash'])) {
+                $error = 'Invalid email or password.';
+            } elseif ((int) $user['is_active'] !== 1) {
+                $error = 'Your account is inactive. Please contact the admin.';
+            } else {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['full_name'];
+                $_SESSION['user_email'] = $user['email'];
+
+                header('Location: ../dashboard/index.php');
+                exit();
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -80,6 +121,10 @@ if ($_GET['success'] ?? '' === 'true') {
 
         <?php if (!empty($success_message)): ?>
           <div class="alert alert-success auth-message"><?php echo htmlspecialchars($success_message); ?></div>
+        <?php endif; ?>
+
+        <?php if (!empty($error)): ?>
+          <div class="alert alert-danger auth-message"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
 
         <form method="post" action="" class="login-form">
