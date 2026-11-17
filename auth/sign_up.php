@@ -1,3 +1,58 @@
+<?php
+require_once __DIR__ . '/../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $fullname = trim($_POST['fullname'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
+    $staffCode = trim($_POST['staff_code'] ?? '');
+
+    $error = 'This is an error message. Please try again later.';
+    $success = '';
+
+    if ($fullname === '' || $email === '' || $password === '' || $confirmPassword === '') {
+        $error = 'Please fill in all fields.';
+    } elseif ($password !== $confirmPassword) {
+        $error = 'Passwords do not match.';
+    } else {
+        $stmt = $conn->prepare('SELECT id FROM users WHERE email = ?');
+
+        if (!$stmt) {
+            $error = 'Internal server error. Please try again later.';
+        } else {
+            $stmt->bind_param('s', $email);
+            $stmt->execute();
+            $stmt->store_result();
+
+            if ($stmt->num_rows > 0) {
+                $error = 'This email is in use';
+            } else {
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+                $new_user = $conn->prepare('INSERT INTO users (full_name, email, password_hash, staff_code) VALUES (?, ?, ?, ?)');
+
+                if (!$new_user) {
+                    $error = 'An error occurred while creating your account.';
+                } else {
+                    $new_user->bind_param('ssss', $fullname, $email, $passwordHash, $staffCode);
+
+                    if ($new_user->execute()) {
+                        $success = 'Account created successfully.';
+                        header("Location: login.php");
+                        exit();
+                    } else {
+                        $error = 'Unable to create account. Please try again.';
+                    }
+
+                    $new_user->close();
+                }
+            }
+
+            $stmt->close();
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,6 +104,12 @@
             }
         }
         .bi-book { font-size: 6rem; }
+        .auth-message {
+          width:70%;
+          display:flex;
+          justify-content:center;
+          align-self:center;
+        }
     </style>
 </head>
 <body>
@@ -65,6 +126,11 @@
           <h2>Create Account</h2>
           <p class="text-secondary mb-4">Sign up as a librarian</p>
         </div>
+
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-danger auth-message"><?php echo $error; ?></div>
+        <?php endif; ?>
+
         <form method="post" action="" class="login-form">
             <div class="input-group mb-3">
               <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
@@ -72,7 +138,7 @@
             </div>
             <div class="input-group mb-3">
               <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
-              <input type="text" name="username" class="form-control" placeholder="Username" required>
+              <input type="email" name="email" class="form-control" placeholder="Email" required>
             </div>
             <div class="input-group mb-3">
               <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>

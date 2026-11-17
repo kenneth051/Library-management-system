@@ -68,7 +68,7 @@
         <form method="post" action="" class="login-form">
             <div class="input-group mb-3">
             <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
-            <input type="text" name="username" class="form-control" placeholder="Username" required>
+            <input type="email" name="email" class="form-control" placeholder="Email" required>
             </div>
             <div class="input-group mb-3">
                 <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
