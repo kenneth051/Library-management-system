@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (!isset($_SESSION['user_id'])) { header('Location: ../auth/login.php'); exit(); }
+$activePage = 'Books';
 require_once __DIR__ . '/../config/database.php';
 
 $message = '';
@@ -43,51 +46,110 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+<?php
+$val = function ($key, $default = '') use ($message) {
+    return htmlspecialchars($message === '' ? ($_POST[$key] ?? $default) : $default);
+};
+$dupErr  = str_contains($error, 'already exists');
+$yearErr = str_contains($error, 'year');
+$copyErr = str_contains($error, 'copies');
+?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Add Book</title>
+  <title>LMS | Add book</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; background:#f4f6f9; }
-    .card { max-width:420px; margin:40px auto; background:#fff; padding:24px; border-radius:8px; }
-    label { display:block; margin-top:12px; }
-    input, select { width:100%; padding:8px; margin-top:5px; box-sizing:border-box; }
-    button { margin-top:16px; padding:10px 16px; background:#174a72; color:#fff; border:none; cursor:pointer; }
-    .ok { color:green; font-weight:bold; }
-    .err { color:#b00020; font-weight:bold; }
+    .main-content { min-height: 100vh; background: #eef1f8; }
+    .account-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; background: #0d6efd; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Add Book</h2>
-    <?php if ($message): ?><p class="ok"><?= htmlspecialchars($message) ?></p><?php endif; ?>
-    <?php if ($error): ?><p class="err"><?= htmlspecialchars($error) ?></p><?php endif; ?>
-    <form method="post">
-      <label>ISBN <input type="text" name="isbn" required></label>
-      <label>Title <input type="text" name="title" required></label>
-      <label>Author
-        <select name="author_id" required>
-          <option value="">-- choose --</option>
-          <?php while ($a = $authors->fetch_assoc()): ?>
-            <option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['name']) ?></option>
-          <?php endwhile; ?>
-        </select>
-      </label>
-      <label>Category
-        <select name="category_id" required>
-          <option value="">-- choose --</option>
-          <?php while ($c = $categories->fetch_assoc()): ?>
-            <option value="<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
-          <?php endwhile; ?>
-        </select>
-      </label>
-      <label>Publisher <input type="text" name="publisher"></label>
-      <label>Year published <input type="number" name="year_published" min="1000" max="2100"></label>
-      <label>Total copies <input type="number" name="total_copies" value="1" min="1" required></label>
-      <button type="submit">Save Book</button>
-    </form>
+<div class="row">
+<?php require_once __DIR__ . '/../includes/sidebar.php'; ?>
+
+<div class="col-lg-10 main-content p-4">
+  <nav class="navbar bg-white border-bottom rounded mb-4 px-3">
+    <span class="d-flex align-items-center ms-auto">
+      <span class="account-circle">AD</span>
+      <span class="ms-2"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Admin') ?></span>
+    </span>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h2 class="fw-bold mb-0">Add book</h2>
+      <p class="text-secondary">Enter the details of the new book</p>
+    </div>
+    <a href="index.php" class="btn btn-outline-secondary">Back to books</a>
   </div>
+
+  <?php if ($message !== ''): ?><div class="alert alert-success"><?= htmlspecialchars($message) ?></div><?php endif; ?>
+  <?php if ($error !== ''): ?><div class="alert alert-danger"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <form method="post" class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">ISBN</label>
+          <input type="text" name="isbn" class="form-control <?= $dupErr ? 'is-invalid' : '' ?>" value="<?= $val('isbn') ?>" required>
+          <div class="invalid-feedback"><?= htmlspecialchars($error) ?></div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Title</label>
+          <input type="text" name="title" class="form-control" value="<?= $val('title') ?>" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Author</label>
+          <select name="author_id" class="form-select" required>
+            <option value="">-- choose --</option>
+            <?php foreach ($authors as $a): ?>
+              <option value="<?= (int)$a['id'] ?>" <?= ($message === '' && (int)($_POST['author_id'] ?? 0) === (int)$a['id']) ? 'selected' : '' ?>><?= htmlspecialchars($a['name']) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <div class="form-text">Not listed? <a href="../authors/index.php">Add an author first.</a></div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Category</label>
+          <select name="category_id" class="form-select" required>
+            <option value="">-- choose --</option>
+            <?php foreach ($categories as $c): ?>
+              <option value="<?= (int)$c['id'] ?>" <?= ($message === '' && (int)($_POST['category_id'] ?? 0) === (int)$c['id']) ? 'selected' : '' ?>><?= htmlspecialchars($c['name']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Publisher</label>
+          <input type="text" name="publisher" class="form-control" value="<?= $val('publisher') ?>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Year published</label>
+          <input type="text" name="year_published" class="form-control <?= $yearErr ? 'is-invalid' : '' ?>" value="<?= $val('year_published') ?>">
+          <div class="invalid-feedback"><?= htmlspecialchars($error) ?></div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Total copies</label>
+          <input type="number" min="1" name="total_copies" class="form-control <?= $copyErr ? 'is-invalid' : '' ?>" value="<?= $val('total_copies', '1') ?>" required>
+          <div class="invalid-feedback"><?= htmlspecialchars($error) ?></div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Available copies</label>
+          <input type="text" class="form-control" value="<?= $val('total_copies', '1') ?>" disabled>
+          <div class="form-text">Set automatically to match total copies on a new book.</div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">Save book</button>
+          <a href="index.php" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <p class="text-center text-secondary small mt-4 mb-0">Library Management System · Database II CAT 2</p>
+</div>
+</div>
 </body>
 </html>
