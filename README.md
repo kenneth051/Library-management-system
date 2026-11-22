@@ -1,5 +1,16 @@
 # Library Management System
 
+https://github.com/kenneth051/Library-management-system
+
+Ddumba Kenneth 289-841
+SIMON AYUEL KUOL PIOK 198-322
+sifa KPADHIGO Evodie ID 277 -719
+Abubakar Umar Banye 277-968
+Salama Mave Marianna 277-186
+Oketayot George William 224-649
+Ababiku Brenda 273-318
+Zakariye mohamed ali 276- 884
+
 A simple PHP and MySQL library management application that runs on XAMPP.
 
 ## Requirements
@@ -55,16 +66,38 @@ Start Apache and MySQL in XAMPP, then visit:
 http://localhost/Library-management-system/auth/login.php
 ```
 
+## Test Accounts
+
+`database/library_db.sql` creates two accounts you can log in with:
+
+| Role  | Email             | Password      |
+|-------|-------------------|---------------|
+| Admin | admin@library.com | testadmin123  |
+| User  | user@library.com  | testuser123   |
+
 ## Main Pages
 
-- Login: `http://localhost/Library-management-system/auth/login.php`
-- Sign up: `http://localhost/Library-management-system/auth/sign_up.php`
-- Dashboard: `http://localhost/Library-management-system/dashboard/index.php`
+All pages are under `http://localhost/Library-management-system/`.
+
+| Page | URL | Who can see it |
+|------|-----|----------------|
+| Login | `auth/login.php` | Everyone |
+| Books | `books/index.php` | Admins see every book; users see only the books they have been loaned |
+| Add book | `books/create.php` | Admins |
+| Dashboard | `dashboard/index.php` | Admins |
+| Members | `members/index.php` | Admins |
+| Add member | `members/create.php` | Admins |
+| Loans | `loans/index.php` | Admins |
+| Issue book | `loans/issue.php` | Admins |
+
+Non-admin users are redirected to the Books page if they open an admin-only page.
 
 ## Using the Application
 
-1. Open the sign-up page.
-2. Enter a full name, email, password, password confirmation, and staff code.
-3. Create an account.
-4. You will be redirected to the login page.
-5. Log in with the email and password you registered.
+1. Log in with one of the test accounts above.
+2. As an admin, add books, add members (with a password) and issue books to members from the Loans page.
+3. Log in as a member to see the books that have been loaned to them.
+
+## Not Built Yet
+
+These files exist but are still empty: editing books and members, returning a loan, and the Authors and Categories pages. The Edit buttons on the Books and Members lists therefore do not work yet.
