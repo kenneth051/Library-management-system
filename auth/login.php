@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || $password === '') {
         $error = 'Please enter both email and password.';
     } else {
-        $stmt = $conn->prepare('SELECT id, full_name, email, password_hash, is_active FROM users WHERE email = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT id, full_name, email, password_hash, is_active, is_admin FROM users WHERE email = ? LIMIT 1');
 
         if (!$stmt) {
             $error = 'Database error. Please try again later.';
@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['full_name'];
                 $_SESSION['user_email'] = $user['email'];
+                $_SESSION['is_admin'] = (int) $user['is_admin'] === 1;
 
                 header('Location: ../dashboard/index.php');
                 exit();
@@ -138,9 +139,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
-        <p class="new-librarian">
-            <span class="text-secondary">New librarian? </span><a href="sign_up.php">Sign up</a>
-        </p>
       </div>
     </div>
 </div>

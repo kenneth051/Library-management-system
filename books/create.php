@@ -1,6 +1,7 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 if (!isset($_SESSION['user_id'])) { header('Location: ../auth/login.php'); exit(); }
+if ((int)($_SESSION['is_admin'] ?? 0) !== 1) { header('Location: ../books/index.php'); exit(); }
 $activePage = 'Books';
 require_once __DIR__ . '/../config/database.php';
 
@@ -71,13 +72,8 @@ $copyErr = str_contains($error, 'copies');
 <div class="row">
 <?php require_once __DIR__ . '/../includes/sidebar.php'; ?>
 
-<div class="col-lg-10 main-content p-4">
-  <nav class="navbar bg-white border-bottom rounded mb-4 px-3">
-    <span class="d-flex align-items-center ms-auto">
-      <span class="account-circle">AD</span>
-      <span class="ms-2"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Admin') ?></span>
-    </span>
-  </nav>
+<div class="col-lg-10 main-content">
+  <?php require_once __DIR__ . '/../includes/header.php'; ?>
 
   <div class="d-flex justify-content-between align-items-start mb-3">
     <div>

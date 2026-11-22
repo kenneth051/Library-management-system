@@ -38,26 +38,32 @@ function sidebarLinkClass($label, $activePage) {
 
   <nav class="flex-grow-1 py-4">
     <ul class="list-unstyled mb-0">
+      <?php if ((int)($_SESSION['is_admin'] ?? 0) === 1): ?>
       <li class="mb-3">
         <a href="<?php echo $baseUrl; ?>/dashboard/index.php" class="<?php echo sidebarLinkClass('Dashboard', $activePage); ?>">
           <i class="bi bi-house-door"></i><span>Dashboard</span>
         </a>
       </li>
+      <?php endif; ?>
       <li class="mb-3">
         <a href="<?php echo $baseUrl; ?>/books/index.php" class="<?php echo sidebarLinkClass('Books', $activePage); ?>">
           <i class="bi bi-book"></i><span>Books</span>
         </a>
       </li>
+      <?php if ((int)($_SESSION['is_admin'] ?? 0) === 1): ?>
       <li class="mb-3">
         <a href="<?php echo $baseUrl; ?>/members/index.php" class="<?php echo sidebarLinkClass('Members', $activePage); ?>">
           <i class="bi bi-people"></i><span>Members</span>
         </a>
       </li>
+      <?php endif; ?>
+      <?php if ((int)($_SESSION['is_admin'] ?? 0) === 1): ?>
       <li class="mb-3">
         <a href="<?php echo $baseUrl; ?>/loans/index.php" class="<?php echo sidebarLinkClass('Loans', $activePage); ?>">
           <i class="bi bi-arrow-left-right"></i><span>Loans</span>
         </a>
       </li>
+      <?php endif; ?>
       <li class="mb-3">
         <a href="<?php echo $baseUrl; ?>/authors/index.php" class="<?php echo sidebarLinkClass('Authors', $activePage); ?>">
           <i class="bi bi-pencil"></i><span>Authors</span>
@@ -66,11 +72,6 @@ function sidebarLinkClass($label, $activePage) {
       <li class="mb-3">
         <a href="<?php echo $baseUrl; ?>/categories/index.php" class="<?php echo sidebarLinkClass('Categories', $activePage); ?>">
           <i class="bi bi-grid"></i><span>Categories</span>
-        </a>
-      </li>
-      <li class="mb-3">
-        <a href="<?php echo $baseUrl; ?>/members/index.php" class="<?php echo sidebarLinkClass('Users', $activePage); ?>">
-          <i class="bi bi-shield"></i><span>Users</span>
         </a>
       </li>
     </ul>

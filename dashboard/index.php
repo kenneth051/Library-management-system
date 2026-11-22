@@ -6,7 +6,33 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+if ((int)($_SESSION['is_admin'] ?? 0) !== 1) {
+    header('Location: ../books/index.php');
+    exit();
+}
+
+require_once __DIR__ . '/../config/database.php';
+
 $activePage = 'Dashboard';
+
+function countRows($conn, $sql) {
+    return (int)$conn->query($sql)->fetch_row()[0];
+}
+
+$totalBooks = countRows($conn, 'SELECT COUNT(*) FROM books');
+$totalMembers = countRows($conn, 'SELECT COUNT(*) FROM users WHERE is_admin = 0');
+
+$borrowedBooks = countRows($conn, 'SELECT COUNT(*) FROM book_loans WHERE return_date IS NULL');
+$overdueBooks = countRows($conn, 'SELECT COUNT(*) FROM book_loans WHERE return_date IS NULL AND due_date < CURDATE()');
+
+$recentLoans = $conn->query(
+    'SELECT users.full_name AS member, books.title, book_loans.due_date, book_loans.return_date
+     FROM book_loans
+     JOIN users ON users.id = book_loans.user_id
+     JOIN books ON books.id = book_loans.book_id
+     ORDER BY book_loans.loan_date DESC, book_loans.id DESC
+     LIMIT 5'
+)->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,22 +50,6 @@ $activePage = 'Dashboard';
       min-height: 100vh;
     }
     .ml-10{ margin-left: 10px;}
-    .account-circle {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: bold;
-    }
-    .logged-in-user {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: bold;
-    }
     .dashboard-section-one {
       display: flex;
       justify-content: space-between;
@@ -95,35 +105,8 @@ $activePage = 'Dashboard';
   <div class="row">
   <?php require_once __DIR__ . '/../includes/sidebar.php'; ?>
 
-  <div class="col-lg-10 main-content p-4">
-    <nav class="navbar bg-1 fg-2 border-bottom">
-      <div class="container-fluid">
-        <button class="btn-icon navbar-toggler" type="button" data-bs-toggle="drawer" data-bs-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon" aria-hidden="true"></span>
-        </button>
-        <span class="logged-in-user">
-          <span class="account-circle bg-primary">AD </span>
-          <span class="ms-2"><?php echo $_SESSION['user_name']; ?></span>
-        </span>
-        <dialog class="drawer drawer-end" tabindex="-1" id="navbarTogglerDemo03" aria-labelledby="navbarTogglerDemo03Label">
-          <!-- <div class="drawer-header">
-            <h5 class="drawer-title" id="navbarTogglerDemo03Label">Menu</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="drawer" aria-label="Close"></button>
-          </div>
-          <div class="drawer-body">
-            <ul class="navbar-nav me-auto mb-2">
-              <li class="nav-item"><a class="nav-link active" aria-current="page" href="#">Home</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Link</a></li>
-              <li class="nav-item"><a class="nav-link disabled" aria-disabled="true">Disabled</a></li>
-            </ul>
-            <form class="d-flex" role="search">
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
-              <button class="btn-outline theme-success" type="submit">Search</button>
-            </form>
-          </div> -->
-        </dialog>
-      </div>
-    </nav>
+  <div class="col-lg-10 main-content">
+    <?php require_once __DIR__ . '/../includes/header.php'; ?>
     <div class="dashboard-section-one mt-3">
       <div>
         <h2>Dashboard</h2>
@@ -144,28 +127,28 @@ $activePage = 'Dashboard';
         <div class="card p-3" style="background-color: #0d6efd">
           <i class="bi bi-book"></i>
           <h5>Total Books</h5>
-          <span class="fs-2 fw-bold">1,234</span>
+          <span class="fs-2 fw-bold"><?= $totalBooks ?></span>
         </div>
       </div>
       <div class="col-lg-3 mb-3">
         <div class="card p-3" style="background-color: #14c696">
           <i class="bi bi-people"></i>
           <h5>Total Members</h5>
-          <span class="fs-2 fw-bold">567</span>
+          <span class="fs-2 fw-bold"><?= $totalMembers ?></span>
         </div>
       </div>
       <div class="col-lg-3 mb-3">
         <div class="card p-3" style="background-color: #f0810a">
           <i class="bi bi-arrow-left-right"></i>
           <h5>Borrowed Books</h5>
-          <span class="fs-2 fw-bold">89</span>
+          <span class="fs-2 fw-bold"><?= $borrowedBooks ?></span>
         </div>
       </div>
       <div class="col-lg-3 mb-3">
         <div class="card p-3" style="background-color: #e81818">
           <i class="bi bi-exclamation-circle"></i>
           <h5>Overdue Books</h5>
-          <span class="fs-2 fw-bold">12</span>
+          <span class="fs-2 fw-bold"><?= $overdueBooks ?></span>
         </div>
       </div>
     </div>
@@ -174,7 +157,7 @@ $activePage = 'Dashboard';
         <div class="dashboard-card overflow-hidden">
           <div class="d-flex justify-content-between align-items-center px-4 py-3">
             <h3 class="fw-bold mb-0">Recent loans</h3>
-            <a href="#" class="fw-bold text-decoration-none">View all</a>
+            <a href="../loans/index.php" class="fw-bold text-decoration-none">View all</a>
           </div>
 
           <div class="table-responsive">
@@ -188,24 +171,26 @@ $activePage = 'Dashboard';
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Okello David</td>
-                  <td>Introduction to Algorithms</td>
-                  <td>20 Oct 2026</td>
-                  <td><span class="badge rounded-pill text-danger bg-danger-subtle px-3 py-2">Overdue</span></td>
-                </tr>
-                <tr>
-                  <td>Achieng Grace</td>
-                  <td>Clean Code</td>
-                  <td>27 Oct 2026</td>
-                  <td><span class="badge rounded-pill text-danger bg-danger-subtle px-3 py-2">Overdue</span></td>
-                </tr>
-                <tr>
-                  <td>Opio Samuel</td>
-                  <td>Learning SQL</td>
-                  <td>16 Nov 2026</td>
-                  <td><span class="badge rounded-pill text-success bg-success-subtle px-3 py-2">On time</span></td>
-                </tr>
+                <?php if (!$recentLoans): ?>
+                  <tr><td colspan="4" class="text-center text-muted py-4">No loans yet.</td></tr>
+                <?php endif; ?>
+                <?php foreach ($recentLoans as $loan): ?>
+                  <?php
+                    if ($loan['return_date'] !== null) {
+                        $badge = ['Returned', 'secondary'];
+                    } elseif ($loan['due_date'] < date('Y-m-d')) {
+                        $badge = ['Overdue', 'danger'];
+                    } else {
+                        $badge = ['On time', 'success'];
+                    }
+                  ?>
+                  <tr>
+                    <td><?= htmlspecialchars($loan['member']) ?></td>
+                    <td><?= htmlspecialchars($loan['title']) ?></td>
+                    <td><?= date('d M Y', strtotime($loan['due_date'])) ?></td>
+                    <td><span class="badge rounded-pill text-<?= $badge[1] ?> bg-<?= $badge[1] ?>-subtle px-3 py-2"><?= $badge[0] ?></span></td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
