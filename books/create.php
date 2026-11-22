@@ -7,8 +7,8 @@ require_once __DIR__ . '/../config/database.php';
 $message = '';
 $error = '';
 
-$authors = $conn->query('SELECT id, name FROM authors ORDER BY name');
-$categories = $conn->query('SELECT id, name FROM categories ORDER BY name');
+$authors = $conn->query('SELECT id, name FROM authors ORDER BY name')->fetch_all(MYSQLI_ASSOC);
+$categories = $conn->query('SELECT id, name FROM categories ORDER BY name')->fetch_all(MYSQLI_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isbn        = trim($_POST['isbn'] ?? '');
